@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Search, map and drill into startups across Indian incubators and accelerators by sector, incubator and city.">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+</head>
+<body>
+<title>India Incubator Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a deal-sourcing workbench. One ask bar on top, a live filter trail under it, then four views:
+   Explore (drill-down sector map), Companies (faceted list + A–Z), Incubators, Matrix. A ⌘K palette jumps anywhere. */
+:root{
+  --bg:#F2F4F1; --surface:#FFFFFF; --sunk:#E9EDE8; --ink:#16201A; --muted:#5A675F; --line:#D5DCD6;
+  --accent:#1E4FCF; --accent-ink:#FFFFFF; --accent-weak:#E2E9FB;
+  --good:#1D7A4A; --good-weak:#DDF1E5; --warn:#9A6200; --warn-weak:#FBEBCB; --flat:#5A675F; --flat-weak:#E5E9E6;
+  --danger:#B42318; --scrim:rgba(10,14,12,.45);
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1412; --surface:#161D19; --sunk:#1C2420; --ink:#E5ECE7; --muted:#95A49B; --line:#2A3530;
+  --accent:#8AA6FF; --accent-ink:#0F1412; --accent-weak:#1D2850;
+  --good:#6FD39C; --good-weak:#163323; --warn:#F2BE5C; --warn-weak:#3A2B0C; --flat:#95A49B; --flat-weak:#24302A;
+  --danger:#FF8A80; --scrim:rgba(0,0,0,.6); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1412; --surface:#161D19; --sunk:#1C2420; --ink:#E5ECE7; --muted:#95A49B; --line:#2A3530;
+  --accent:#8AA6FF; --accent-ink:#0F1412; --accent-weak:#1D2850;
+  --good:#6FD39C; --good-weak:#163323; --warn:#F2BE5C; --warn-weak:#3A2B0C; --flat:#95A49B; --flat-weak:#24302A;
+  --danger:#FF8A80; --scrim:rgba(0,0,0,.6); color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
+.wrap{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.wrap>*{min-width:0}
+h1,h2,h3{font-family:var(--f-display);font-stretch:80%;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,4.4vw,42px);font-weight:800;line-height:1.05}
+h2{font-size:22px;font-weight:700} h3{font-size:17px;font-weight:700}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+kbd{font:500 11px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--surface);color:var(--muted)}
+
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px}
+.kicker{font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font:500 13px var(--f-mono);color:var(--muted)}
+.stats b{color:var(--ink);font-weight:500;font-size:15px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 13px;cursor:pointer;font-weight:500;font-size:14px;color:var(--ink)}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent);padding:4px 6px}
+.btn.small{padding:4px 9px;font-size:13px}
+.btn.danger{color:var(--danger)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* Ask bar */
+.askbar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--ink);border-radius:var(--r);padding:4px 6px 4px 14px}
+.askbar svg{flex:none;color:var(--muted)}
+.askbar input{flex:1;min-width:0;border:0;background:transparent;font-size:18px;padding:10px 0;outline:none}
+.askbar .kb{display:flex;gap:4px;align-items:center;color:var(--muted);font-size:12px}
+@media (max-width:600px){.askbar .kb{display:none}}
+.btn.ask{background:var(--ink);color:var(--bg);border-color:var(--ink);white-space:nowrap}
+.hints{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.hint{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:2px 10px;cursor:pointer;font-size:13px;color:var(--muted)}
+.hint:hover{color:var(--ink);border-color:var(--muted)}
+.askline{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.askline b{color:var(--ink);font-weight:600}
+
+/* Filter trail */
+.trail{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:30px}
+.trail .lbl{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:var(--accent-weak);color:var(--ink);border-radius:999px;padding:3px 4px 3px 10px;font-size:13px}
+.chip i{font-style:normal;font:500 10.5px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.chip button{border:0;background:transparent;cursor:pointer;color:var(--muted);width:20px;height:20px;border-radius:50%;line-height:1}
+.chip button:hover{background:var(--surface);color:var(--ink)}
+.saved{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.saved .sv{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 4px 2px 10px;font-size:13px;display:inline-flex;align-items:center;gap:4px}
+.saved .sv button{border:0;background:none;cursor:pointer;color:var(--ink);padding:0}
+.saved .sv button.x{color:var(--muted);width:18px}
+
+nav.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+nav.tabs .n{font:500 12px var(--f-mono);color:var(--muted)}
+nav.tabs kbd{font-size:10px;padding:0 4px}
+@media (max-width:600px){nav.tabs kbd{display:none}}
+
+/* Explore */
+.xbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:14px}
+.crumbs button{border:0;background:none;cursor:pointer;color:var(--accent);padding:2px 4px;font-weight:500}
+.crumbs span.sep{color:var(--muted)}
+.crumbs b{padding:2px 4px}
+.tm{position:relative;height:clamp(380px,58vh,560px);background:var(--sunk);border-radius:var(--r);overflow:hidden}
+.tile{position:absolute;border:2px solid var(--bg);border-radius:4px;padding:8px 10px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:2px;text-align:left;color:var(--ink);transition:filter .15s}
+.tile:hover{filter:brightness(1.06)}
+.tile .tn{font:700 15px/1.15 var(--f-display);font-stretch:85%}
+.tile .tc{font:500 12px var(--f-mono)}
+.tile .tt{font-size:11.5px;opacity:.85;margin-top:auto;line-height:1.3}
+.tile.sm .tt{display:none}
+.tile.xs .tn{font-size:12px} .tile.xs .tc{display:none}
+.tile.dark{color:var(--accent-ink)}
+.slice{display:grid;gap:10px;margin-top:14px}
+.slice-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.minis{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.mini{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:9px 11px;cursor:pointer;text-align:left;display:grid;gap:2px;color:var(--ink)}
+.mini:hover{border-color:var(--accent)}
+.mini b{font-size:14px}
+.mini span{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Companies */
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:820px){.layout{grid-template-columns:1fr}}
+aside.rail{display:grid;gap:18px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:820px){aside.rail{position:static}}
+.rail h4{margin:0 0 8px;font:600 11px/1 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.rail h4 button{font:inherit;letter-spacing:inherit;border:0;background:none;color:var(--accent);cursor:pointer;padding:0}
+.facet{display:flex;flex-direction:column;gap:1px;max-height:260px;overflow:auto}
+.facet label{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:14px}
+.facet label:hover{background:var(--sunk)}
+.facet label .c{margin-left:auto;font:12px var(--f-mono);color:var(--muted)}
+.facet label.zero{color:var(--muted)}
+.facet input{accent-color:var(--accent);margin:0}
+.ffind{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:4px 8px;font-size:13px;margin-bottom:6px}
+.segc{display:flex;flex-wrap:wrap;gap:6px}
+.chipbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:13px;cursor:pointer;color:var(--ink)}
+.chipbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.az{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px}
+.az button{border:0;background:transparent;font:500 12px var(--f-mono);width:26px;height:26px;border-radius:4px;cursor:pointer;color:var(--ink)}
+.az button:hover{background:var(--sunk)}
+.az button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.az button:disabled{color:var(--line);cursor:default;background:none}
+.resultbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:14px}
+.resultbar select{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:5px 8px}
+.list{display:grid;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.4fr) minmax(0,1fr) auto;gap:6px 18px;padding:13px 16px;border-top:1px solid var(--line);align-items:start}
+.row:first-child{border-top:0}
+@media (max-width:760px){.row{grid-template-columns:minmax(0,1fr) auto}.row .sec,.row .incs{grid-column:1/-1}}
+.row .nm{font-weight:600;font-size:15.5px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.nmbtn{border:0;background:none;padding:0;font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.nmbtn:hover{color:var(--accent);text-decoration:underline}
+.row .note{font-size:13px;color:var(--muted);margin-top:2px}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:12px;padding:2px 8px;border-radius:4px;background:var(--sunk);border:0;cursor:pointer;color:var(--ink)}
+.tag:hover{background:var(--accent-weak)}
+.tag.inc{background:transparent;border:1px solid var(--line)}
+.tag.inc:hover{border-color:var(--accent)}
+.rel{font:12px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.pill{font:600 10.5px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;padding:4px 6px;border-radius:3px}
+.pill.Unicorn{background:var(--warn-weak);color:var(--warn)}
+.pill.Listed{background:var(--good-weak);color:var(--good)}
+.pill.Acquired,.pill.Shut{background:var(--flat-weak);color:var(--flat)}
+.pill.multi{background:var(--accent-weak);color:var(--accent)}
+.empty{padding:36px 20px;text-align:center;color:var(--muted)}
+
+/* Incubators */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;text-align:left;color:var(--ink)}
+.card:hover{border-color:var(--muted)}
+.card .meta{font-size:13px;color:var(--muted)}
+.card .grp{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.bars{display:grid;gap:4px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:8px;align-items:center;font-size:12px}
+.bar .t{position:relative;padding:2px 6px;border-radius:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;z-index:0}
+.bar .t i{position:absolute;inset:0 auto 0 0;background:var(--accent-weak);z-index:-1;border-radius:3px}
+.bar .v{font:12px var(--f-mono);text-align:right;color:var(--muted)}
+button.bar{border:0;background:none;padding:0;cursor:pointer;color:var(--ink);text-align:left;width:100%}
+button.bar:hover .t i{background:color-mix(in srgb,var(--accent) 30%,transparent)}
+.cov{font:12px var(--f-mono);color:var(--muted);margin-top:auto;display:flex;justify-content:space-between;gap:8px}
+.cov.gap{color:var(--warn)}
+
+/* Matrix */
+.matrix-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+table.matrix{border-collapse:collapse;font-size:12px}
+.matrix th,.matrix td{border-bottom:1px solid var(--line);padding:0}
+.matrix thead th{position:sticky;top:0;background:var(--surface);vertical-align:bottom;height:150px}
+.matrix thead th div{writing-mode:vertical-rl;transform:rotate(180deg);padding:8px 4px;font-weight:500;white-space:nowrap;max-height:146px;overflow:hidden;text-overflow:ellipsis}
+.matrix tbody th{text-align:left;padding:6px 12px;font-weight:600;white-space:nowrap;position:sticky;left:0;background:var(--surface);z-index:1}
+.matrix td button{width:34px;height:28px;border:0;background:transparent;font:12px var(--f-mono);cursor:pointer;color:var(--ink)}
+.matrix td button[disabled]{cursor:default;color:transparent}
+.matrix td.tot{font:600 12px var(--f-mono);padding:0 10px;text-align:right}
+
+/* Dialogs & drawer */
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:0;width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
+dialog::backdrop{background:var(--scrim)}
+dialog.drawer{margin:0 0 0 auto;height:100%;max-height:100%;width:min(520px,100vw);border-radius:0;border-width:0 0 0 1px}
+.drawer .dlg{padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.dlg{display:grid;gap:14px;padding:20px}
+.dlg header{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.field{display:grid;gap:5px}
+.field>span{font:600 12px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:var(--r);padding:8px 10px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.pick{display:flex;flex-wrap:wrap;gap:6px;max-height:170px;overflow:auto;padding:2px}
+.dlg footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px}
+.err{color:var(--danger);font-size:13px}
+.plist{display:grid;border:1px solid var(--line);border-radius:var(--r);max-height:46vh;overflow:auto}
+.plist button{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 12px;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;color:var(--ink);width:100%}
+.plist button:first-child{border-top:0}
+.plist button:hover{background:var(--sunk)}
+.plist .s{color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted);font-size:13px}.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.sub{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;text-decoration:none}
+.links a:hover{border-color:var(--accent)}
+
+/* Palette */
+dialog.pal{width:min(640px,calc(100vw - 24px));margin-top:10vh;max-height:76vh}
+.pal input{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:16px 18px;font-size:18px;outline:none}
+.pal ul{list-style:none;margin:0;padding:6px;max-height:56vh;overflow:auto}
+.pal li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer}
+.pal li[aria-selected="true"]{background:var(--accent-weak)}
+.pal li .k{font:600 10.5px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);width:78px;flex:none}
+.pal li .l{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pal li .s{margin-left:auto;color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+.pal .foot{display:flex;gap:14px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:var(--r);font-size:14px;z-index:20}
+.banner{border:1px solid var(--line);border-left:3px solid var(--warn);background:var(--surface);padding:10px 14px;border-radius:var(--r);font-size:14px}
+footer.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+
+/* ---- Laptop & desktop workbench ---- */
+.app{display:grid;grid-template-columns:minmax(0,1fr)}
+.side{display:none}
+.content{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
+.views{min-width:0}
+#dock{display:none}
+.row.cur{background:var(--accent-weak)}
+.row.open{box-shadow:inset 3px 0 0 var(--accent)}
+@media (min-width:1080px){
+  body{padding-block:0}
+  .app{grid-template-columns:232px minmax(0,1fr);max-width:1760px;margin:0 auto}
+  .mobile-only{display:none!important}
+  .wrap{max-width:none;margin:0;padding:0 0 48px 28px;gap:14px}
+  .side{display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow:auto;padding:22px 20px 18px 0;border-right:1px solid var(--line)}
+  .side .brand h1{font-size:27px;line-height:1}
+  .side .st{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+  .side .st div{display:grid}
+  .side .st b{font:600 18px var(--f-mono);font-variant-numeric:tabular-nums}
+  .side .st span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .snav{display:grid;gap:2px}
+  .snav button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-weight:600;color:var(--muted);text-align:left}
+  .snav button:hover{background:var(--sunk);color:var(--ink)}
+  .snav button[aria-selected="true"]{background:var(--accent-weak);color:var(--ink)}
+  .snav .n{margin-left:auto;font:500 12px var(--f-mono);color:var(--muted)}
+  .snav kbd{font-size:10px;padding:0 4px}
+  .side .saved{display:grid;gap:4px}
+  .side .saved .sv{border-radius:var(--r);justify-content:space-between}
+  .side .keys{display:grid;gap:5px;font-size:12.5px;color:var(--muted);margin-top:auto}
+  .side .keys div{display:flex;justify-content:space-between;gap:8px}
+  .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);display:grid;gap:10px;padding-block:16px 10px;border-bottom:1px solid var(--line)}
+  .topbar .askbar input{font-size:17px;padding:8px 0}
+  aside.rail{top:calc(var(--tb,140px) + 14px);max-height:calc(100vh - var(--tb,140px) - 28px);overflow:auto;padding-right:4px}
+  .tm{height:max(420px, calc(100vh - var(--tb,140px) - 120px))}
+  .row{padding:10px 14px}
+}
+@media (min-width:1280px){
+  .content.docked{grid-template-columns:minmax(0,1fr) min(440px,32vw)}
+  .content.docked #dock{display:block;position:sticky;top:calc(var(--tb,140px) + 14px);max-height:calc(100vh - var(--tb,140px) - 28px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+  .content.docked #dock .dlg{padding:18px 20px}
+  .content.docked .layout{grid-template-columns:220px minmax(0,1fr)}
+  .content.docked .row{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto}
+  .content.docked .row .incs{grid-column:1/-1;order:5}
+  .content.docked .row .incs .rel{width:auto!important;margin-left:6px}
+}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}}
+</style>
+
+<div class="app">
+<aside class="side" aria-label="Atlas navigation">
+  <div class="brand"><div class="kicker">Deal sourcing · India</div><h1>India Incubator Atlas</h1></div>
+  <div class="st" id="stats2"></div>
+  <nav class="snav" aria-label="Views">
+    <button data-v="explore" aria-selected="true">Explore <kbd>1</kbd></button>
+    <button data-v="companies" aria-selected="false">Companies<span class="n n-co"></span><kbd>2</kbd></button>
+    <button data-v="incubators" aria-selected="false">Incubators<span class="n n-inc"></span><kbd>3</kbd></button>
+    <button data-v="map" aria-selected="false">Matrix <kbd>4</kbd></button>
+  </nav>
+  <div><div class="sub" style="margin-bottom:6px">Saved views</div><div class="saved" id="saved2"><span class="muted" style="font-size:12.5px">Filter something, then press ☆ Save view.</span></div></div>
+  <div class="keys">
+    <div><span>Jump anywhere</span><span><kbd>/</kbd> <kbd>⌘K</kbd></span></div>
+    <div><span>Switch view</span><span><kbd>1</kbd>–<kbd>4</kbd></span></div>
+    <div><span>Move in list</span><span><kbd>J</kbd> <kbd>K</kbd></span></div>
+    <div><span>Open selected</span><span><kbd>Enter</kbd></span></div>
+    <div><span>Close panel</span><span><kbd>Esc</kbd></span></div>
+  </div>
+</aside>
+<div class="wrap">
+  <header class="top mobile-only">
+    <div>
+      <div class="kicker">Deal sourcing · India</div>
+      <h1>India Incubator Atlas</h1>
+    </div>
+    <div class="stats" id="stats"><span><b>—</b> companies</span><span><b>—</b> incubators</span><span><b>—</b> sectors</span></div>
+  </header>
+
+  <div class="banner" id="offline" hidden>The data file could not be loaded. Refresh the page; if it keeps failing, check the latest run under the repository's Actions tab.</div>
+
+  <div class="topbar" id="topbar">
+  <form class="askbar" id="askForm" autocomplete="off">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Search, or ask: “drone startups backed by IIT Madras”" aria-label="Search or ask">
+    <span class="kb"><kbd>/</kbd> jump</span>
+    <button class="btn ask" id="askBtn" type="submit" title="Turn this sentence into filters">Ask ✦</button>
+  </form>
+  <div class="askline" id="askline" hidden></div>
+  <div class="hints"><span>Try</span>
+    <button class="hint" data-ask="quantum">quantum</button><button class="hint" data-ask="space startups">space</button><button class="hint" data-ask="drones and defence in Kerala">drones · Kerala</button><button class="hint" data-ask="semiconductor startups backed by 2 or more incubators">semis · co-backed</button><button class="hint" data-ask="climate startups at IIT Madras">climate · IIT Madras</button><button class="hint" data-ask="healthtech invested by IIMA Ventures">health · IIMA</button>
+  </div>
+
+  <div class="trail" id="trail"></div>
+  </div>
+  <div class="saved mobile-only" id="saved" hidden></div>
+
+  <nav class="tabs mobile-only" role="tablist">
+    <button role="tab" data-v="explore" aria-selected="true">Explore <kbd>1</kbd></button>
+    <button role="tab" data-v="companies" aria-selected="false">Companies<span class="n n-co"></span> <kbd>2</kbd></button>
+    <button role="tab" data-v="incubators" aria-selected="false">Incubators<span class="n n-inc"></span> <kbd>3</kbd></button>
+    <button role="tab" data-v="map" aria-selected="false">Matrix <kbd>4</kbd></button>
+  </nav>
+
+  <div class="content" id="content"><div class="views">
+  <!-- Explore -->
+  <section id="v-explore">
+    <div class="xbar">
+      <div class="crumbs" id="crumbs"></div>
+      <div class="actions"><span class="muted" style="font-size:13px">Map by</span>
+        <div class="seg" id="groupSeg"><button data-g="sector" aria-pressed="true">Sector</button><button data-g="inc" aria-pressed="false">Incubator</button><button data-g="city" aria-pressed="false">City</button></div>
+      </div>
+    </div>
+    <div class="tm" id="tm" role="group" aria-label="Map of companies"></div>
+    <div class="slice" id="slice"></div>
+  </section>
+
+  <!-- Companies -->
+  <section id="v-companies" class="layout" hidden>
+    <aside class="rail">
+      <div><h4>Sector <button data-clear="sec" hidden>clear</button></h4><div class="facet" id="fSec"></div></div>
+      <div><h4>Incubator / accelerator <button data-clear="inc" hidden>clear</button></h4><div class="facet" id="fInc"></div></div>
+      <div><h4>City <button data-clear="city" hidden>clear</button></h4><input class="ffind" id="cityFind" placeholder="Find a city" aria-label="Find a city"><div class="facet" id="fCity"></div></div>
+      <div><h4>Relationship</h4><div class="segc" id="fRel"></div></div>
+      <div><h4>Signal</h4><div class="segc" id="fSig"></div></div>
+    </aside>
+    <div style="min-width:0">
+      <div class="az" id="az"></div>
+      <div class="resultbar">
+        <span id="count" class="muted">Loading portfolio…</span>
+        <div class="actions">
+          <select id="sort" aria-label="Sort"><option value="name">A–Z</option><option value="new">Recently added</option><option value="multi">Most backers first</option><option value="year">Newest cohort</option></select>
+          <button class="btn" id="exportBtn" hidden>Export CSV</button>
+          <button class="btn primary" id="addCo" hidden>Add company</button><a class="btn primary" id="suggestCo" href="#" target="_blank" rel="noopener" style="text-decoration:none">Suggest a company ↗</a>
+        </div>
+      </div>
+      <div class="list" id="list"><div class="empty">Loading portfolio from the shared database…</div></div>
+    </div>
+  </section>
+
+  <!-- Incubators -->
+  <section id="v-incubators" hidden>
+    <div class="resultbar"><span class="muted" id="incCount"></span>
+      <div class="actions"><select id="incSort" aria-label="Sort incubators"><option value="order">Original list order</option><option value="count">Most companies tracked</option><option value="name">A–Z</option></select><button class="btn primary" id="addInc" hidden>Add incubator</button></div></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- Matrix -->
+  <section id="v-map" hidden>
+    <p class="muted" style="margin:0 0 10px;font-size:14px">Companies per sector and incubator, within the current filters. Pick a cell to list those companies.</p>
+    <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
+  </section>
+  </div><aside id="dock" aria-label="Details"></aside></div>
+
+  <footer class="foot">Built from each incubator's own published portfolio or startup directory where one exists (SINE IIT Bombay, IITM Research Park, IIMA Ventures, NSRCEL, C-CAMP, Venture Center, SIIC IIT Kanpur, CIE IIIT-H, Villgro, Forge, GUSEC, iTIC IIT Hyderabad, FITT IIT Delhi, Kerala Startup Mission's certified-startup register), plus press and investor listings for the rest. Sectors are auto-tagged from each source's own categories and descriptions. NSRCEL and KSUM lists are filtered to technology and venture-style businesses. Every entry links to its source. Data updates go through the GitHub repository, where every change is reviewed and versioned. <span id="built"></span> Shortcuts: <kbd>/</kbd> or <kbd>⌘K</kbd> jump anywhere, <kbd>1</kbd>–<kbd>4</kbd> switch views, <kbd>Esc</kbd> closes.</footer>
+</div>
+</div>
+
+<dialog id="dPal" class="pal" aria-label="Jump to"><div>
+  <input id="palQ" placeholder="Jump to a company, incubator, sector or city" aria-label="Jump to">
+  <ul id="palList" role="listbox"></ul>
+  <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span></div>
+</div></dialog>
+
+<dialog id="dView" class="drawer"><div class="dlg" id="viewBody"></div></dialog>
+
+<dialog id="dCo"><form class="dlg" id="fCo" method="dialog">
+  <header><h2 id="dCoTitle">Add company</h2><button type="button" class="btn ghost" data-close>Close</button></header>
+  <label class="field"><span>Company name</span><input id="coName" required maxlength="120"></label>
+  <div class="field"><span>Sectors</span><div class="pick" id="coSecPick"></div>
+    <input id="coSecNew" placeholder="Add another sector, e.g. Marine Tech" maxlength="40"></div>
+  <div class="field"><span>Incubators / accelerators</span><div class="pick" id="coIncPick"></div></div>
+  <div class="two">
+    <label class="field"><span>Relationship</span><select id="coRel"><option>Incubated</option><option>Invested</option><option>Accelerated</option><option>Supported</option><option>Associated</option></select></label>
+    <label class="field"><span>Status</span><select id="coStatus"><option value="">Active / private</option><option>Unicorn</option><option>Listed</option><option>Acquired</option><option>Shut</option></select></label>
+  </div>
+  <div class="two">
+    <label class="field"><span>City</span><input id="coCity" maxlength="60"></label>
+    <label class="field"><span>Website</span><input id="coWeb" maxlength="120" placeholder="example.com"></label>
+  </div>
+  <label class="field"><span>Note</span><input id="coNote" maxlength="240" placeholder="What they do, round, cohort…"></label>
+  <label class="field"><span>Source link</span><input id="coSrc" type="url" placeholder="https://"></label>
+  <p class="err" id="coErr" hidden></p>
+  <footer><div><button type="button" class="btn danger" id="coDel" hidden>Delete</button><button type="button" class="btn danger" id="coDelYes" hidden>Confirm delete</button></div>
+    <div class="actions"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary" id="coSave">Save company</button></div></footer>
+</form></dialog>
+
+<dialog id="dInc"><form class="dlg" id="fInc2" method="dialog">
+  <header><h2 id="dIncTitle">Add incubator</h2><button type="button" class="btn ghost" data-close>Close</button></header>
+  <label class="field"><span>Name</span><input id="inName" required maxlength="120"></label>
+  <div class="two"><label class="field"><span>Host / parent</span><input id="inHost" maxlength="120"></label><label class="field"><span>City, state</span><input id="inCity" maxlength="80"></label></div>
+  <div class="two"><label class="field"><span>Type</span><input id="inGroup" list="groups" maxlength="60"></label><label class="field"><span>Founded</span><input id="inFounded" maxlength="4" inputmode="numeric"></label></div>
+  <datalist id="groups"></datalist>
+  <label class="field"><span>Scale (as stated)</span><input id="inScale" maxlength="60" placeholder="e.g. 300+ incubated"></label>
+  <label class="field"><span>Focus</span><input id="inFocus" maxlength="200"></label>
+  <label class="field"><span>Website</span><input id="inWeb" type="url" placeholder="https://"></label>
+  <p class="err" id="inErr" hidden></p>
+  <footer><div><button type="button" class="btn danger" id="inDel" hidden>Delete</button><button type="button" class="btn danger" id="inDelYes" hidden>Confirm delete</button></div>
+    <div class="actions"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary">Save incubator</button></div></footer>
+</form></dialog>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80) || "x";
+
+const SECTORS = ["Quantum","Space & Aerospace","Drones & Defence","EV & Mobility","Climate & Energy","Agritech","Healthtech & Medtech","Biotech & Pharma","Fintech","Edtech & Skilling","AI & Software","SaaS & Enterprise","Robotics & Hardware","Semiconductors & Electronics","Cybersecurity","Consumer & D2C","Social Impact","Logistics & Supply Chain","Media & Content","Materials & Nanotech","Water & Sanitation","Legal & HR Tech","Proptech","Telecom & Networking","Food & Beverage","Fashion & Lifestyle","Business Services","Travel & Hospitality","Other"];
+const ALIAS = {
+ "quantum":"Quantum","qkd":"Quantum","space":"Space & Aerospace","satellite":"Space & Aerospace","satellites":"Space & Aerospace","rocket":"Space & Aerospace","aerospace":"Space & Aerospace","spacetech":"Space & Aerospace",
+ "drone":"Drones & Defence","drones":"Drones & Defence","uav":"Drones & Defence","defence":"Drones & Defence","defense":"Drones & Defence","defencetech":"Drones & Defence",
+ "ev":"EV & Mobility","evs":"EV & Mobility","electric":"EV & Mobility","mobility":"EV & Mobility","automotive":"EV & Mobility",
+ "climate":"Climate & Energy","cleantech":"Climate & Energy","energy":"Climate & Energy","solar":"Climate & Energy","renewable":"Climate & Energy","climatetech":"Climate & Energy","battery":"Climate & Energy","batteries":"Climate & Energy",
+ "agri":"Agritech","agritech":"Agritech","agtech":"Agritech","farm":"Agritech","farming":"Agritech","agriculture":"Agritech",
+ "health":"Healthtech & Medtech","healthtech":"Healthtech & Medtech","healthcare":"Healthtech & Medtech","medtech":"Healthtech & Medtech","medical":"Healthtech & Medtech","diagnostics":"Healthtech & Medtech",
+ "biotech":"Biotech & Pharma","pharma":"Biotech & Pharma","lifesciences":"Biotech & Pharma","bio":"Biotech & Pharma",
+ "fintech":"Fintech","payments":"Fintech","lending":"Fintech","insurtech":"Fintech",
+ "edtech":"Edtech & Skilling","education":"Edtech & Skilling","skilling":"Edtech & Skilling",
+ "ai":"AI & Software","ml":"AI & Software","software":"AI & Software","saas":"SaaS & Enterprise","b2b":"SaaS & Enterprise","enterprise":"SaaS & Enterprise",
+ "robotics":"Robotics & Hardware","robot":"Robotics & Hardware","robots":"Robotics & Hardware","hardware":"Robotics & Hardware","iot":"Robotics & Hardware",
+ "semiconductor":"Semiconductors & Electronics","semiconductors":"Semiconductors & Electronics","semis":"Semiconductors & Electronics","chip":"Semiconductors & Electronics","chips":"Semiconductors & Electronics","electronics":"Semiconductors & Electronics",
+ "cyber":"Cybersecurity","cybersecurity":"Cybersecurity","security":"Cybersecurity",
+ "consumer":"Consumer & D2C","d2c":"Consumer & D2C","social":"Social Impact","impact":"Social Impact",
+ "logistics":"Logistics & Supply Chain","supply":"Logistics & Supply Chain","media":"Media & Content","content":"Media & Content",
+ "materials":"Materials & Nanotech","nanotech":"Materials & Nanotech","nano":"Materials & Nanotech","water":"Water & Sanitation","sanitation":"Water & Sanitation",
+ "telecom":"Telecom & Networking","5g":"Telecom & Networking","networking":"Telecom & Networking","food":"Food & Beverage","fashion":"Fashion & Lifestyle","travel":"Travel & Hospitality",
+ "legal":"Legal & HR Tech","hr":"Legal & HR Tech","hrtech":"Legal & HR Tech","proptech":"Proptech","realestate":"Proptech","construction":"Proptech"
+};
+const STOP = new Set("a an the and or in at of for by with from to on startups startup companies company backed incubated invested funded show me find list all any that which are is based".split(" "));
+const RELS = ["Incubated","Invested","Accelerated","Supported","Associated"];
+
+const REPO = "__REPO__"; // filled in by scripts/build.py from the GitHub repository name
+const ISSUE = (title) => `https://github.com/${REPO}/issues/new?template=add-company.yml${title?`&title=${encodeURIComponent(title)}`:""}`;
+let db = null, canWrite = false, downloads = null, sample = null;
+let companies = new Map(), incubators = new Map(), loaded = {co:false, inc:false};
+let packRows = new Map(), docRows = new Map(), showN = 120;
+const st = { q:"", view:"explore", group:"sector", sec:new Set(), inc:new Set(), city:new Set(), rel:new Set(), sig:new Set(), letter:"", sort:"name", incSort:"order", cityFind:"" };
+const store = { get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch{ return d; } }, set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} } };
+{ const s=store.get("atlas.ui",{}); if (s.sort) st.sort=s.sort; if (s.incSort) st.incSort=s.incSort; if (s.group) st.group=s.group; }
+const saveUI = () => store.set("atlas.ui",{sort:st.sort, incSort:st.incSort, group:st.group});
+
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.append(t); setTimeout(()=>t.remove(),2400); }
+
+// ---------- data ----------
+const incName = id => incubators.get(id)?.name || id;
+const cityKey = c => String(c||"").split(",")[0].trim();
+function rebuild(){
+  const m=new Map(packRows);
+  for (const [id,d] of docRows){ if (d.deleted) m.delete(id); else m.set(id,d); }
+  for (const c of m.values()){
+    c._city = cityKey(c.city);
+    const incs=(c.incubators||[]).map(id=>{const i=incubators.get(id)||{}; return [i.name,i.host,i.city,id].join(" ");}).join(" ");
+    c._h=[c.name,(c.sectors||[]).join(" "),incs,c.note,c.relation,c.status,c.city,c.website].join(" ").toLowerCase();
+    const f=(c.name||"").trim().charAt(0).toUpperCase(); c._L = /[A-Z]/.test(f)?f:"#";
+  }
+  companies=m; palCache=null;
+}
+function allSectors(){ const s=new Set(SECTORS); for (const c of companies.values()) (c.sectors||[]).forEach(x=>s.add(x)); return [...s]; }
+function parseText(q){
+  const toks=q.toLowerCase().split(/[\s,]+/).filter(Boolean);
+  const secHits=new Set(), rest=[]; const names=allSectors();
+  for (const t of toks){
+    const k=t.replace(/[^a-z0-9]/g,"");
+    const a=ALIAS[k]; const d=names.find(s=>s.toLowerCase()===t);
+    if (a||d) secHits.add(a||d); else rest.push(t);
+  }
+  return {toks, secHits, rest};
+}
+function textMatch(c,pq){
+  if (!pq.toks.length) return true;
+  for (const s of pq.secHits) if (!(c.sectors||[]).includes(s) && !c._h.includes(s.toLowerCase())) return false;
+  return pq.rest.every(t=>c._h.includes(t));
+}
+function filtered(skip){
+  const pq=parseText(st.q);
+  const out=[];
+  for (const c of companies.values()){
+    if (!textMatch(c,pq)) continue;
+    if (skip!=="sec" && st.sec.size && !(c.sectors||[]).some(s=>st.sec.has(s))) continue;
+    if (skip!=="inc" && st.inc.size && !(c.incubators||[]).some(i=>st.inc.has(i))) continue;
+    if (skip!=="city" && st.city.size && !st.city.has(c._city)) continue;
+    if (skip!=="rel" && st.rel.size && !st.rel.has(c.relation)) continue;
+    if (skip!=="sig" && st.sig.size && ![...st.sig].every(g=> g==="Multi" ? (c.incubators||[]).length>1 : c.status===g)) continue;
+    if (skip!=="letter" && st.letter && c._L!==st.letter) continue;
+    out.push(c);
+  }
+  return out;
+}
+function sorted(arr){
+  const a=[...arr];
+  if (st.sort==="new") a.sort((x,y)=>String(y.addedAt||"").localeCompare(String(x.addedAt||""))||x.name.localeCompare(y.name));
+  else if (st.sort==="multi") a.sort((x,y)=>(y.incubators||[]).length-(x.incubators||[]).length||x.name.localeCompare(y.name));
+  else if (st.sort==="year") a.sort((x,y)=>String(y.year||"").localeCompare(String(x.year||""))||x.name.localeCompare(y.name));
+  else a.sort((x,y)=>x.name.localeCompare(y.name));
+  return a;
+}
+function tally(list, fn){ const m=new Map(); for (const c of list) for (const v of fn(c)) if (v) m.set(v,(m.get(v)||0)+1); return m; }
+const DIM = { sector:{set:"sec", of:c=>c.sectors||[], label:v=>v, name:"Sector"}, inc:{set:"inc", of:c=>c.incubators||[], label:v=>incName(v), name:"Incubator"}, city:{set:"city", of:c=>c._city?[c._city]:[], label:v=>v, name:"City"} };
+const NEXT = { sector:["sector","inc"], inc:["inc","sector"], city:["city","sector","inc"] };
+
+// ---------- render ----------
+function render(){
+  const cos=companies.size;
+  const secUsed=new Set(); const cities=new Set();
+  for (const c of companies.values()){ (c.sectors||[]).forEach(s=>secUsed.add(s)); if (c._city) cities.add(c._city); }
+  $("#stats").innerHTML = `<span><b>${cos.toLocaleString("en-IN")}</b> companies</span><span><b>${incubators.size}</b> incubators</span><span><b>${secUsed.size}</b> sectors</span><span><b>${cities.size}</b> cities</span>`;
+  document.querySelectorAll(".n-co").forEach(e=>e.textContent = cos? cos.toLocaleString("en-IN"):""); document.querySelectorAll(".n-inc").forEach(e=>e.textContent = incubators.size||"");
+  $("#stats2").innerHTML = [[cos.toLocaleString("en-IN"),"companies"],[incubators.size,"incubators"],[secUsed.size,"sectors"],[cities.size,"cities"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  renderTrail(); renderSaved();
+  if (st.view==="explore") renderExplore();
+  if (st.view==="companies"){ renderFacets(); renderList(); }
+  if (st.view==="incubators") renderCards();
+  if (st.view==="map") renderMatrix();
+}
+function chipsList(){
+  const out=[];
+  if (st.q) out.push(["q",st.q,"Text"]);
+  for (const v of st.sec) out.push(["sec",v,"Sector"]);
+  for (const v of st.inc) out.push(["inc",v,"Incubator"]);
+  for (const v of st.city) out.push(["city",v,"City"]);
+  for (const v of st.rel) out.push(["rel",v,"Relation"]);
+  for (const v of st.sig) out.push(["sig",v,"Signal"]);
+  if (st.letter) out.push(["letter",st.letter,"Starts with"]);
+  return out;
+}
+function chipText(k,v){ return k==="inc"?incName(v): k==="sig"&&v==="Multi"?"Backed by 2+":v; }
+function renderTrail(){
+  const ch=chipsList();
+  if (!ch.length){ $("#trail").innerHTML=`<span class="lbl">Filters</span><span class="muted" style="font-size:13px">None yet. Click a tile, a tag or a facet, or ask in plain words.</span>`; return; }
+  $("#trail").innerHTML = `<span class="lbl">Filters</span>` + ch.map(([k,v,l])=>`<span class="chip"><i>${esc(l)}</i>${esc(chipText(k,v))}<button data-rm="${esc(k)}" data-val="${esc(v)}" aria-label="Remove ${esc(chipText(k,v))}">×</button></span>`).join("") +
+    ` <button class="btn ghost" data-act="clearall">Clear all</button> <button class="btn ghost" data-act="saveview">☆ Save view</button>`;
+}
+function snapshot(){ return {q:st.q, sec:[...st.sec], inc:[...st.inc], city:[...st.city], rel:[...st.rel], sig:[...st.sig], letter:st.letter}; }
+function applySnap(s){ st.q=s.q||""; $("#q").value=st.q; for (const k of ["sec","inc","city","rel","sig"]) st[k]=new Set(s[k]||[]); st.letter=s.letter||""; showN=120; }
+function renderSaved(){
+  const sv=store.get("atlas.views",[]);
+  const box=$("#saved"); box.hidden=!sv.length;
+  const items = sv.map((v,i)=>`<span class="sv"><button data-view="${i}">${esc(v.name)}</button><button class="x" data-unsave="${i}" aria-label="Remove saved view">×</button></span>`).join("");
+  box.innerHTML = `<span class="sub" style="margin-right:4px">Saved</span>` + items;
+  $("#saved2").innerHTML = items || `<span class="muted" style="font-size:12.5px">Filter something, then press ☆ Save view.</span>`;
+}
+
+// Explore
+function currentDim(){
+  for (const d of NEXT[st.group]) if (!st[DIM[d].set].size) return d;
+  return null;
+}
+function squarify(items, W, H){
+  const total=items.reduce((a,b)=>a+b.v,0); if (!total) return [];
+  const nodes=items.map(it=>({it, a:it.v*W*H/total}));
+  const out=[]; let x=0,y=0,w=W,h=H, rest=nodes;
+  const worst=(row,s)=>{ let sum=0,mx=0,mn=Infinity; for(const r of row){sum+=r.a; mx=Math.max(mx,r.a); mn=Math.min(mn,r.a);} return Math.max(s*s*mx/(sum*sum), (sum*sum)/(s*s*mn)); };
+  while (rest.length){
+    const s=Math.min(w,h); let row=[rest[0]], i=1;
+    while (i<rest.length){ const nx=[...row,rest[i]]; if (worst(nx,s)<=worst(row,s)){ row=nx; i++; } else break; }
+    const ra=row.reduce((a,b)=>a+b.a,0);
+    if (w>=h){ const cw=ra/h; let cy=y; for (const r of row){ const rh=r.a/cw; out.push({it:r.it,x,y:cy,w:cw,h:rh}); cy+=rh; } x+=cw; w-=cw; }
+    else { const rh=ra/w; let cx=x; for (const r of row){ const rw=r.a/rh; out.push({it:r.it,x:cx,y,w:rw,h:rh}); cx+=rw; } y+=rh; h-=rh; }
+    rest=rest.slice(row.length);
+  }
+  return out;
+}
+function renderExplore(){
+  document.querySelectorAll("#groupSeg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.g===st.group));
+  const res=filtered();
+  // crumbs
+  const steps=[]; for (const d of NEXT[st.group]) { const set=st[DIM[d].set]; if (set.size) steps.push([d,[...set]]); else break; }
+  $("#crumbs").innerHTML = `<button data-crumb="-1">All</button>` + steps.map(([d,vals],i)=>`<span class="sep">›</span>${i===steps.length-1 && !currentDim() ? `<b>${esc(vals.map(DIM[d].label).join(", "))}</b>` : `<button data-crumb="${i}">${esc(vals.map(DIM[d].label).join(", "))}</button>`}`).join("") + ` <span class="muted mono" style="font-size:12.5px;margin-left:6px">${res.length.toLocaleString("en-IN")} companies</span>`;
+  const tm=$("#tm");
+  const dim=currentDim();
+  if (!loaded.co){ tm.innerHTML=`<div class="empty">Loading the map…</div>`; $("#slice").innerHTML=""; return; }
+  if (!dim || !res.length){
+    tm.hidden=true;
+  } else {
+    tm.hidden=false;
+    const D=DIM[dim];
+    const counts=[...tally(res,D.of).entries()].sort((a,b)=>b[1]-a[1]);
+    const MAX=dim==="city"?24:30;
+    let items=counts.slice(0,MAX).map(([k,v])=>({k,v,label:D.label(k)}));
+    const restN=counts.slice(MAX).reduce((a,b)=>a+b[1],0);
+    if (restN) items.push({k:"__more", v:restN, label:`${counts.length-MAX} more`});
+    const W=tm.clientWidth||900, H=tm.clientHeight||500;
+    const rects=squarify(items,W,H);
+    const max=items[0]?.v||1;
+    const sub = dim===NEXT[st.group][0] && NEXT[st.group][1] ? DIM[NEXT[st.group][1]] : (dim==="sector"?DIM.inc:DIM.sector);
+    tm.innerHTML = rects.map(r=>{
+      const it=r.it, a=0.14+0.7*Math.sqrt(it.v/max), dark=a>0.55;
+      let tops="";
+      if (it.k!=="__more" && r.w>140 && r.h>80){
+        const inSlice=res.filter(c=>D.of(c).includes(it.k));
+        tops=[...tally(inSlice,sub.of).entries()].sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,n])=>`${sub.label(k)} ${n}`).join(" · ");
+      }
+      const cls=["tile", dark?"dark":"", (r.w<140||r.h<80)?"sm":"", (r.w<70||r.h<40)?"xs":""].join(" ");
+      return `<button class="${cls}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:color-mix(in srgb, var(--accent) ${Math.round(a*100)}%, var(--surface))" data-tile="${esc(it.k)}" data-dim="${dim}" title="${esc(it.label)}: ${it.v}">
+        ${(r.w>34&&r.h>22)?`<span class="tn">${esc(it.label)}</span><span class="tc">${it.v.toLocaleString("en-IN")}</span>${tops?`<span class="tt">${esc(tops)}</span>`:""}`:""}</button>`;
+    }).join("");
+  }
+  // slice
+  const top=[...res].sort((a,b)=>(b.incubators||[]).length-(a.incubators||[]).length || (b.status?1:0)-(a.status?1:0) || a.name.localeCompare(b.name)).slice(0,12);
+  const label = !dim ? "This slice" : steps.length ? "Standouts in this slice" : "Standouts across the atlas";
+  $("#slice").innerHTML = res.length ? `<div class="slice-head"><h3>${label}</h3><div class="actions"><span class="muted" style="font-size:13px">Most co-backed first</span><button class="btn small" data-act="openlist">Open all ${res.length.toLocaleString("en-IN")} in the list</button></div></div>
+    <div class="minis">${top.map(c=>`<button class="mini" data-co="${esc(c._id)}"><b>${esc(c.name)}</b><span>${esc((c.sectors||[]).slice(0,2).join(" · "))}</span><span>${esc((c.incubators||[]).map(incName).join(", "))}</span></button>`).join("")}</div>`
+    : `<div class="empty">Nothing matches these filters. Remove a filter above or try a broader term.</div>`;
+}
+
+// Companies
+function facetHTML(map, set, field, labelFn, filterText){
+  let entries=[...map.entries()];
+  for (const v of set) if (!map.has(v)) entries.push([v,0]);
+  if (filterText) entries=entries.filter(([v])=>labelFn(v).toLowerCase().includes(filterText));
+  entries.sort((a,b)=>b[1]-a[1]||String(labelFn(a[0])).localeCompare(labelFn(b[0])));
+  if (field==="city" && !filterText) entries=entries.slice(0,40);
+  return entries.map(([v,n])=>`<label class="${n?"":"zero"}"><input type="checkbox" data-f="${field}" value="${esc(v)}" ${set.has(v)?"checked":""}>${esc(labelFn(v))}<span class="c">${n}</span></label>`).join("") || `<span class="muted" style="font-size:13px">No matches</span>`;
+}
+function renderFacets(){
+  $("#fSec").innerHTML = facetHTML(tally(filtered("sec"),c=>c.sectors||[]), st.sec, "sec", v=>v);
+  const im=tally(filtered("inc"),c=>c.incubators||[]); for (const id of incubators.keys()) if (!im.has(id)) im.set(id,0);
+  $("#fInc").innerHTML = facetHTML(im, st.inc, "inc", incName);
+  $("#fCity").innerHTML = facetHTML(tally(filtered("city"),c=>[c._city]), st.city, "city", v=>v, st.cityFind);
+  document.querySelectorAll("[data-clear]").forEach(b=>b.hidden=!st[b.dataset.clear].size);
+  $("#fRel").innerHTML = RELS.map(r=>`<button class="chipbtn" data-f="rel" data-val="${r}" aria-pressed="${st.rel.has(r)}">${r}</button>`).join("");
+  $("#fSig").innerHTML = [["Multi","Backed by 2+"],["Unicorn","Unicorn"],["Listed","Listed"],["Acquired","Acquired"]].map(([v,l])=>`<button class="chipbtn" data-f="sig" data-val="${v}" aria-pressed="${st.sig.has(v)}">${l}</button>`).join("");
+  const lm=tally(filtered("letter"),c=>[c._L]);
+  $("#az").innerHTML = `<button data-az="" aria-pressed="${!st.letter}" style="width:auto;padding:0 8px">All</button>` + "#ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L=>`<button data-az="${L}" aria-pressed="${st.letter===L}" ${lm.get(L)?"":"disabled"} title="${lm.get(L)||0} companies">${L}</button>`).join("");
+}
+function rowHTML(c){
+  const multi=(c.incubators||[]).length>1;
+  let host=""; try{ host=c.source?new URL(c.source).hostname.replace(/^www\./,""):""; }catch{}
+  return `<div class="row">
+    <div><div class="nm"><button class="nmbtn" data-co="${esc(c._id)}">${esc(c.name)}</button>${c.status?`<span class="pill ${esc(c.status)}">${esc(c.status)}</span>`:""}${multi?`<span class="pill multi">${c.incubators.length} backers</span>`:""}</div>
+      ${c.note?`<div class="note">${esc(c.note)}</div>`:""}
+      ${(c.city||c.year)?`<div class="note">${esc([c.city,c.year&&("since "+c.year)].filter(Boolean).join(" · "))}</div>`:""}
+      <span class="note">${c.website?`<a href="https://${esc(String(c.website).replace(/^https?:\/\//,""))}" target="_blank" rel="noopener">website ↗</a> · `:""}${c.source?`<a href="${esc(c.source)}" target="_blank" rel="noopener">${esc(host)} ↗</a>`:""}</span></div>
+    <div class="tags sec">${(c.sectors||[]).map(s=>`<button class="tag" data-sec="${esc(s)}">${esc(s)}</button>`).join("")}</div>
+    <div class="tags incs">${(c.incubators||[]).map(i=>`<button class="tag inc" data-inc="${esc(i)}">${esc(incName(i))}</button>`).join("")}<span class="rel" style="width:100%">${esc(c.relation||"")}</span></div>
+    <div>${canWrite?`<button class="btn ghost" data-edit="${esc(c._id)}">Edit</button>`:""}</div>
+  </div>`;
+}
+function renderList(){
+  if (!loaded.co) return;
+  const res=sorted(filtered());
+  $("#count").textContent = `${res.length.toLocaleString("en-IN")} of ${companies.size.toLocaleString("en-IN")} companies`;
+  $("#sort").value=st.sort;
+  if (!companies.size){ $("#list").innerHTML=`<div class="empty"><h3>No companies tracked yet</h3><p>Use “Add company” to log the first one.</p></div>`; return; }
+  const shown=res.slice(0,showN);
+  curRow=-1; $("#list").innerHTML = res.length ? shown.map(rowHTML).join("") + (res.length>showN?`<div class="empty"><button class="btn" data-act="more">Show ${Math.min(200,res.length-showN)} more of ${(res.length-showN).toLocaleString("en-IN")} remaining</button></div>`:"") : `<div class="empty">Nothing matches these filters. Remove a filter above or try a broader term.</div>`;
+  markOpen();
+}
+
+// Incubators
+function topSectors(id, list){ return [...tally((list||[...companies.values()]).filter(c=>(c.incubators||[]).includes(id)),c=>c.sectors||[]).entries()].sort((a,b)=>b[1]-a[1]); }
+function portCount(id){ let n=0; for (const c of companies.values()) if ((c.incubators||[]).includes(id)) n++; return n; }
+function renderCards(){
+  const pq=parseText(st.q);
+  let arr=[...incubators.entries()].filter(([id,i])=>{
+    if (!st.q) return true;
+    const h=[i.name,i.host,i.city,i.focus,i.group].join(" ").toLowerCase();
+    const sectorsHere=topSectors(id).map(x=>x[0]);
+    return [...pq.secHits].every(s=>sectorsHere.includes(s)) && pq.rest.every(t=>h.includes(t) || sectorsHere.join(" ").toLowerCase().includes(t));
+  });
+  const pc=new Map(arr.map(([id])=>[id,portCount(id)]));
+  if (st.incSort==="count") arr.sort((a,b)=>pc.get(b[0])-pc.get(a[0]));
+  else if (st.incSort==="name") arr.sort((a,b)=>a[1].name.localeCompare(b[1].name));
+  else arr.sort((a,b)=>(a[1].order||999)-(b[1].order||999));
+  $("#incSort").value=st.incSort;
+  const tracked=[...incubators.keys()].filter(id=>portCount(id)).length;
+  $("#incCount").textContent = `${arr.length} shown · ${tracked} of ${incubators.size} have tracked companies`;
+  if (!incubators.size){ $("#cards").innerHTML=`<div class="empty">No incubators yet. Use “Add incubator” to start the list.</div>`; return; }
+  $("#cards").innerHTML = arr.map(([id,i])=>{
+    const n=pc.get(id), ts=topSectors(id).slice(0,4), max=ts[0]?.[1]||1;
+    return `<button class="card" data-inc="${esc(id)}">
+      <div class="grp">${esc(i.group||"")}</div>
+      <h3>${esc(i.name)}</h3>
+      <div class="meta">${esc([i.host,i.city].filter(Boolean).join(" · "))}${i.founded?` · est. ${esc(i.founded)}`:""}</div>
+      ${ts.length?`<div class="bars">${ts.map(([s,v])=>`<div class="bar"><span class="t"><i style="width:${Math.round(v/max*100)}%"></i>${esc(s)}</span><span class="v">${v}</span></div>`).join("")}</div>`:`<div class="meta">${esc(i.focus||"")}</div>`}
+      <div class="cov ${n?"":"gap"}"><span>${n?`${n.toLocaleString("en-IN")} tracked`:"Not yet tracked"}</span><span>${esc(i.scale||"")}</span></div>
+    </button>`;}).join("") || `<div class="empty">No incubator matches “${esc(st.q)}”.</div>`;
+}
+
+// Matrix
+function renderMatrix(){
+  const res=filtered();
+  const cell=new Map(), secTot=new Map(), incSeen=new Set();
+  for (const c of res) for (const s of (c.sectors||[])){ secTot.set(s,(secTot.get(s)||0)+1); for (const i of (c.incubators||[])){ const k=s+"|"+i; cell.set(k,(cell.get(k)||0)+1); incSeen.add(i);} }
+  const incs=[...incubators.entries()].filter(([id])=>incSeen.has(id)).sort((a,b)=>(a[1].order||999)-(b[1].order||999));
+  const secs=allSectors().filter(s=>secTot.has(s));
+  if (!secs.length){ $("#matrix").innerHTML=`<tbody><tr><td class="empty">No companies match the current filters.</td></tr></tbody>`; return; }
+  let max=1; for (const v of cell.values()) max=Math.max(max,v);
+  $("#matrix").innerHTML = `<thead><tr><th></th>${incs.map(([id,i])=>`<th title="${esc(i.name)}"><div>${esc(i.name)}</div></th>`).join("")}<th><div>Total</div></th></tr></thead><tbody>${
+    secs.map(s=>`<tr><th>${esc(s)}</th>${incs.map(([i])=>{const v=cell.get(s+"|"+i)||0; const a=v?0.18+0.82*Math.sqrt(v/max):0;
+      return `<td><button ${v?"":"disabled"} data-cell="${esc(s)}|${esc(i)}" style="${v?`background:color-mix(in srgb, var(--accent) ${Math.round(a*100)}%, transparent);color:${a>.55?"var(--accent-ink)":"var(--ink)"}`:""}" aria-label="${esc(s)} at ${esc(incName(i))}: ${v}">${v||""}</button></td>`;}).join("")}<td class="tot">${secTot.get(s)}</td></tr>`).join("")}</tbody>`;
+}
+
+// ---------- drawers ----------
+function openCompany(id){
+  const c=companies.get(id); if (!c) return;
+  const others=[...companies.values()].filter(x=>x!==c);
+  const s0=(c.sectors||[])[0];
+  const peers=others.filter(x=>(x.incubators||[]).some(i=>(c.incubators||[]).includes(i)) && (x.sectors||[]).some(s=>(c.sectors||[]).includes(s))).sort((a,b)=>(b.incubators||[]).length-(a.incubators||[]).length).slice(0,8);
+  const elsewhere=s0?others.filter(x=>(x.sectors||[]).includes(s0) && !(x.incubators||[]).some(i=>(c.incubators||[]).includes(i))).sort((a,b)=>(b.incubators||[]).length-(a.incubators||[]).length||a.name.localeCompare(b.name)).slice(0,8):[];
+  const web=c.website?`https://${String(c.website).replace(/^https?:\/\//,"")}`:"";
+  const qn=encodeURIComponent(c.name);
+  const plist=(arr)=>`<div class="plist">${arr.map(x=>`<button data-co="${esc(x._id)}"><b>${esc(x.name)}</b><span class="s">${esc((x.incubators||[]).map(incName).join(", "))}</span></button>`).join("")}</div>`;
+  $("#viewBody").innerHTML = `<header><div><div class="kicker">${esc(c.relation||"Company")}${c.year?` · since ${esc(c.year)}`:""}</div><h2>${esc(c.name)}</h2></div><button class="btn ghost" data-close>Close</button></header>
+    ${c.note?`<p style="margin:0">${esc(c.note)}</p>`:""}
+    <dl class="kv">${c.city?`<dt>City</dt><dd><button class="tag" data-city="${esc(c._city)}">${esc(c.city)}</button></dd>`:""}
+      <dt>Sectors</dt><dd class="tags">${(c.sectors||[]).map(s=>`<button class="tag" data-sec="${esc(s)}">${esc(s)}</button>`).join("")}</dd>
+      <dt>Backed by</dt><dd class="tags">${(c.incubators||[]).map(i=>`<button class="tag inc" data-inc="${esc(i)}">${esc(incName(i))}</button>`).join("")}</dd>
+      ${c.status?`<dt>Status</dt><dd><span class="pill ${esc(c.status)}">${esc(c.status)}</span></dd>`:""}</dl>
+    <div class="links">${web?`<a href="${esc(web)}" target="_blank" rel="noopener">Website ↗</a>`:""}${c.source?`<a href="${esc(c.source)}" target="_blank" rel="noopener">Source listing ↗</a>`:""}
+      <a href="https://www.google.com/search?q=${qn}+startup+India" target="_blank" rel="noopener">Search the web ↗</a>
+      <a href="https://www.linkedin.com/search/results/companies/?keywords=${qn}" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a href="https://www.google.com/search?q=${qn}+funding+raises&tbm=nws" target="_blank" rel="noopener">Funding news ↗</a>
+      <a href="${ISSUE("Correction: "+c.name)}" target="_blank" rel="noopener">Suggest a correction ↗</a></div>
+    ${peers.length?`<div class="sub">Same backer, same sector</div>${plist(peers)}`:""}
+    ${elsewhere.length?`<div class="sub">${esc(s0)} at other incubators</div>${plist(elsewhere)}`:""}
+    ${canWrite?`<footer class="actions" style="border-top:1px solid var(--line);padding-top:14px"><button class="btn" data-edit="${esc(c._id)}">Edit details</button></footer>`:""}`;
+  present("co:"+id);
+}
+function openIncubator(id){
+  const i=incubators.get(id); if(!i) return;
+  const port=[...companies.values()].filter(c=>(c.incubators||[]).includes(id)).sort((a,b)=>(b.incubators||[]).length-(a.incubators||[]).length||a.name.localeCompare(b.name));
+  const ts=topSectors(id, port), max=ts[0]?.[1]||1;
+  $("#viewBody").innerHTML = `<header><div><div class="kicker">${esc(i.group||"Incubator")}</div><h2>${esc(i.name)}</h2></div><button class="btn ghost" data-close>Close</button></header>
+    <dl class="kv">${[["Host",i.host],["Location",i.city],["Founded",i.founded],["Scale",i.scale],["Focus",i.focus]].filter(x=>x[1]).map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}
+    ${i.website?`<dt>Website</dt><dd><a href="${esc(i.website)}" target="_blank" rel="noopener">${esc(i.website.replace(/^https?:\/\//,""))} ↗</a></dd>`:""}</dl>
+    <div class="actions"><button class="btn primary small" data-filterinc="${esc(id)}">Explore this portfolio</button>${canWrite?`<button class="btn small" data-editinc="${esc(id)}">Edit details</button><button class="btn small" data-addfor="${esc(id)}">Add company here</button>`:""}</div>
+    ${ts.length?`<div class="sub">Sectors · pick one to filter</div><div class="bars">${ts.slice(0,12).map(([s,v])=>`<button class="bar" data-secinc="${esc(s)}|${esc(id)}"><span class="t"><i style="width:${Math.round(v/max*100)}%"></i>${esc(s)}</span><span class="v">${v}</span></button>`).join("")}</div>`:""}
+    <div class="sub">${port.length.toLocaleString("en-IN")} tracked ${port.length===1?"company":"companies"}${port.length>300?" · first 300, co-backed first":""}</div>
+    ${port.length?`<div class="plist">${port.slice(0,300).map(c=>`<button data-co="${esc(c._id)}"><b>${esc(c.name)}</b><span class="s">${esc((c.sectors||[]).join(", "))}</span></button>`).join("")}</div>`:`<p class="muted">None tracked yet.</p>`}`;
+  present("inc:"+id);
+}
+const WIDE = () => matchMedia("(min-width:1280px)").matches;
+let dockKey="";
+function present(key){
+  if (WIDE()){
+    const dock=$("#dock"), was=$("#content").classList.contains("docked");
+    dock.innerHTML=`<div class="dlg">${$("#viewBody").innerHTML}</div>`; $("#viewBody").innerHTML=""; dock.scrollTop=0;
+    $("#content").classList.add("docked"); dockKey=key; markOpen();
+    if (!was && st.view==="explore") renderExplore();
+  } else {
+    if (!$("#dView").open) $("#dView").showModal();
+    $("#dView").scrollTop=0;
+  }
+}
+function hideDock(){ if (!$("#content").classList.contains("docked")) return; $("#content").classList.remove("docked"); $("#dock").innerHTML=""; dockKey=""; markOpen(); if (st.view==="explore") renderExplore(); }
+function markOpen(){ document.querySelectorAll(".row.open").forEach(r=>r.classList.remove("open")); if (dockKey.startsWith("co:")){ const id=dockKey.slice(3); document.querySelectorAll(".row").forEach(r=>{ if (r.querySelector(".nmbtn")?.dataset.co===id) r.classList.add("open"); }); } }
+
+// ---------- palette ----------
+let palCache=null, palItems=[], palSel=0;
+function palIndex(){
+  if (palCache) return palCache;
+  const out=[];
+  for (const [id,i] of incubators) out.push({k:"Incubator", l:i.name, s:[i.host,i.city].filter(Boolean).join(" · "), t:(i.name+" "+(i.host||"")+" "+id).toLowerCase(), go:()=>openIncubator(id), w:3});
+  for (const s of allSectors()) out.push({k:"Sector", l:s, s:"Filter by sector", t:s.toLowerCase(), go:()=>{ st.sec=new Set([s]); setView("explore"); }, w:3});
+  const cities=tally([...companies.values()],c=>[c._city]);
+  for (const [c,n] of cities) out.push({k:"City", l:c, s:`${n} companies`, t:c.toLowerCase(), go:()=>{ st.city=new Set([c]); setView("explore"); }, w:2});
+  for (const c of companies.values()) out.push({k:"Company", l:c.name, s:(c.incubators||[]).map(incName).join(", "), t:c.name.toLowerCase(), go:()=>openCompany(c._id), w:1});
+  palCache=out; return out;
+}
+function palScore(t,q){
+  if (t.startsWith(q)) return 100-Math.min(40,t.length-q.length)*0.5;
+  const i=t.indexOf(" "+q); if (i>=0) return 70-i*0.1;
+  const j=t.indexOf(q); if (j>=0) return 55-j*0.1;
+  let p=0; for (const ch of q){ p=t.indexOf(ch,p); if (p<0) return -1; p++; } return 15;
+}
+function renderPal(){
+  const q=$("#palQ").value.trim().toLowerCase();
+  if (!q){ palItems=[...palIndex().filter(x=>x.k==="Incubator"), ...palIndex().filter(x=>x.k==="Sector").slice(0,8)].slice(0,30); }
+  else palItems=palIndex().map(x=>({x,sc:palScore(x.t,q)})).filter(o=>o.sc>=0).sort((a,b)=>b.sc+b.x.w*4-(a.sc+a.x.w*4)).slice(0,40).map(o=>o.x);
+  palSel=Math.min(palSel,Math.max(0,palItems.length-1));
+  $("#palList").innerHTML = palItems.map((x,i)=>`<li role="option" data-pi="${i}" aria-selected="${i===palSel}"><span class="k">${x.k}</span><span class="l">${esc(x.l)}</span><span class="s">${esc(x.s)}</span></li>`).join("") || `<li><span class="muted">No match. Press Enter to search the list for “${esc(q)}”.</span></li>`;
+  $("#palList").querySelector('[aria-selected="true"]')?.scrollIntoView({block:"nearest"});
+}
+function openPal(){ $("#palQ").value=""; palSel=0; renderPal(); $("#dPal").showModal(); $("#palQ").focus(); }
+function palGo(i){
+  const x=palItems[i]; $("#dPal").close();
+  if (x) x.go(); else { const q=$("#palQ").value.trim(); if (q){ st.q=q; $("#q").value=q; setView("companies"); } }
+}
+
+// ---------- ask ----------
+function topCities(n){ return [...tally([...companies.values()],c=>[c._city]).entries()].sort((a,b)=>b[1]-a[1]).slice(0,n).map(x=>x[0]); }
+const INC_WORDS = () => [...incubators.entries()].map(([id,i])=>{
+  const keys=new Set([id.replace(/-/g," "), (i.name||"").toLowerCase()]);
+  const host=(i.host||"").toLowerCase(); if (host) keys.add(host);
+  (i.name||"").toLowerCase().split(/[()]/).map(s=>s.trim()).filter(s=>s.length>2).forEach(s=>keys.add(s));
+  const abbr={ "iitm-ic":["iit madras","iitm"], "sine-iitb":["iit bombay","iitb","sine"], "fitt-iitd":["iit delhi","iitd","fitt"], "siic-iitk":["iit kanpur","iitk","siic"], "nsrcel":["iim bangalore","iimb","nsrcel"], "iima-ventures":["iim ahmedabad","iima","ciie"], "ksum":["kerala startup mission","ksum","kerala"], "t-hub":["t-hub","thub"], "cie-iiith":["iiit hyderabad","iiith","cie"], "itic-iith":["iit hyderabad","iith","itic"], "c-camp":["c-camp","ccamp"], "venture-center":["venture center","ncl pune"], "gusec":["gusec","gujarat university"], "villgro":["villgro"], "forge":["forge","coimbatore"], "iit-mandi-catalyst":["iit mandi","catalyst"], "iimcip":["iim calcutta","iimcip"], "iimu-ic":["iim udaipur"], "iimv-field":["iim visakhapatnam","iimv"], "aic-36inc":["36inc"], "aic-mit-adt":["mit adt"], "aic-banasthali":["banasthali"], "ikp":["ikp"], "startup-oasis":["startup oasis","jaipur"], "aic-pinnacle":["pinnacle"] }[id]||[];
+  abbr.forEach(a=>keys.add(a));
+  return {id, keys:[...keys].filter(k=>k&&k.length>=3).sort((a,b)=>b.length-a.length)};
+});
+function localAsk(text){
+  let t=" "+text.toLowerCase().replace(/[^\p{L}\p{N}+&\- ]/gu," ").replace(/\s+/g," ")+" ";
+  const got={sec:new Set(), inc:new Set(), city:new Set(), rel:new Set(), multi:false};
+  for (const {id,keys} of INC_WORDS()) for (const k of keys){ const kk=" "+k+" "; if (t.includes(kk)){ got.inc.add(id); t=t.replace(kk," "); break; } }
+  for (const c of topCities(400)){ const kk=" "+c.toLowerCase()+" "; if (c.length>2 && t.includes(kk)){ got.city.add(c); t=t.replace(kk," "); } }
+  if (/\b(2\+|two or more|2 or more|multiple|several|co-?backed|more than one)\b/.test(t)){ got.multi=true; t=t.replace(/\b(backed by )?(2\+|two or more|2 or more|multiple|several|co-?backed|more than one)( incubators?| backers?)?\b/g," "); }
+  for (const r of RELS){ const w=r.toLowerCase(); if (t.includes(" "+w+" ") && !/startups? (incubated|invested)/.test(t)) {} }
+  if (/\binvested\b|\bportfolio investments?\b/.test(t)) got.rel.add("Invested");
+  const rest=[];
+  for (const w of t.split(" ").filter(Boolean)){
+    const k=w.replace(/[^a-z0-9]/g,""); const a=ALIAS[k]; const d=allSectors().find(s=>s.toLowerCase()===w);
+    if (a||d) got.sec.add(a||d); else if (!STOP.has(w) && !RELS.map(r=>r.toLowerCase()).includes(w) && w.length>1) rest.push(w);
+  }
+  return {sectors:[...got.sec], incubators:[...got.inc], cities:[...got.city], relation:[...got.rel], multi:got.multi, text:rest.join(" ")};
+}
+function applyAsk(r, how){
+  const secs=new Set(allSectors());
+  st.sec=new Set((r.sectors||[]).filter(s=>secs.has(s)));
+  st.inc=new Set((r.incubators||[]).filter(i=>incubators.has(i)));
+  const cs=new Set(topCities(2000)); st.city=new Set((r.cities||[]).filter(c=>cs.has(c)));
+  st.rel=new Set((r.relation||[]).filter(x=>RELS.includes(x)));
+  st.sig=new Set(r.multi?["Multi"]:[]);
+  st.letter=""; st.q=String(r.text||"").trim(); $("#q").value=st.q; showN=120;
+  const n=filtered().length;
+  $("#askline").hidden=false;
+  $("#askline").innerHTML = `<span>${how}</span>${r.explain?`<b>${esc(r.explain)}</b>`:""}<span class="mono">${n.toLocaleString("en-IN")} matches</span>`;
+}
+let askCtl=null;
+async function ask(text){
+  text=text.trim(); if (!text) return;
+  const local=localAsk(text);
+  const structured = local.sectors.length+local.incubators.length+local.cities.length+(local.multi?1:0)+local.relation.length;
+  const words=text.split(/\s+/).length;
+  if (!sample || (structured && !local.text) || words<3){
+    applyAsk(local, structured?"Read as filters":"Searching for"); render(); return;
+  }
+  const btn=$("#askBtn"); btn.disabled=true; btn.textContent="Thinking…";
+  $("#askline").hidden=false; $("#askline").innerHTML=`<span>Asking Claude to turn this into filters…</span>`;
+  askCtl?.abort(); askCtl=new AbortController();
+  const incList=[...incubators.entries()].map(([id,i])=>`${id}: ${i.name}${i.host?` (${i.host})`:""}${i.city?`, ${i.city}`:""}`).join("\n");
+  const prompt=`You turn a search request about Indian startups into filters for a database of incubator and accelerator portfolios.
+Sectors (use these exact names): ${allSectors().join("; ")}
+Incubators (use the id before the colon):
+${incList}
+Cities (exact spelling; Kerala districts are cities here): ${topCities(80).join("; ")}
+Relationships: ${RELS.join(", ")}
+Request: """${text.slice(0,400)}"""
+Reply with only JSON like {"sectors":[],"incubators":[],"cities":[],"relation":[],"multi":false,"text":"","explain":"Drones & Defence startups at IIT Madras"}.
+Rules: "multi" is true only if the request wants companies backed by two or more incubators. A state name (like Kerala) means all its cities you know from the list. "text" holds only leftover keywords that must appear in a company's name or description (like "battery" or "satellite"), else "". "explain" is one short plain sentence. Leave a list empty rather than guess.`;
+  try{
+    const r=await sample.json(prompt,{modelTier:"quick", signal:askCtl.signal});
+    if (!r || typeof r!=="object") throw {code:"invalid_json"};
+    applyAsk(r,"Claude read this as");
+  }catch(e){
+    if (e?.code==="cancelled") {}
+    else {
+      if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e?.code)) sample=null;
+      applyAsk(local, e?.code==="rate_limited" ? "Claude is busy, so this was read locally as" : "Read as filters");
+    }
+  }finally{ btn.disabled=false; btn.textContent="Ask ✦"; render(); }
+}
+
+// ---------- forms ----------
+let editingCo=null, editingInc=null;
+function fillPicks(selSec=[], selInc=[]){
+  $("#coSecPick").innerHTML = allSectors().map(s=>`<button type="button" class="chipbtn" data-pick="sec" data-val="${esc(s)}" aria-pressed="${selSec.includes(s)}">${esc(s)}</button>`).join("");
+  $("#coIncPick").innerHTML = [...incubators.entries()].sort((a,b)=>a[1].name.localeCompare(b[1].name)).map(([id,i])=>`<button type="button" class="chipbtn" data-pick="inc" data-val="${esc(id)}" aria-pressed="${selInc.includes(id)}">${esc(i.name)}</button>`).join("");
+}
+function openCo(id, presetInc){
+  if ($("#dView").open) $("#dView").close();
+  editingCo=id||null; const c=id?companies.get(id):null;
+  $("#dCoTitle").textContent = c?`Edit ${c.name}`:"Add company";
+  $("#coName").value=c?.name||""; $("#coRel").value=c?.relation||"Incubated"; $("#coStatus").value=c?.status||"";
+  $("#coNote").value=c?.note||""; $("#coSrc").value=c?.source||""; $("#coSecNew").value=""; $("#coCity").value=c?.city||""; $("#coWeb").value=c?.website||"";
+  fillPicks(c?.sectors||[], c?.incubators||(presetInc?[presetInc]:[...st.inc]));
+  $("#coDel").hidden=!c; $("#coDelYes").hidden=true; $("#coErr").hidden=true;
+  $("#dCo").showModal(); $("#coName").focus();
+}
+const picked = kind => [...document.querySelectorAll(`[data-pick="${kind}"][aria-pressed="true"]`)].map(b=>b.dataset.val);
+async function saveCo(e){
+  e.preventDefault();
+  const err=$("#coErr"); err.hidden=true;
+  const name=$("#coName").value.trim();
+  let sectors=picked("sec"); const extra=$("#coSecNew").value.trim(); if (extra && !sectors.includes(extra)) sectors.push(extra);
+  const incs=picked("inc");
+  if (!name){ err.textContent="Give the company a name."; err.hidden=false; return; }
+  if (!sectors.length){ err.textContent="Pick at least one sector so it shows up in sector searches."; err.hidden=false; return; }
+  if (!incs.length){ err.textContent="Pick the incubator or accelerator that backs it."; err.hidden=false; return; }
+  let id=editingCo || slug(name); if (!editingCo){ let k=2; while(companies.has(id)) id=slug(name)+"-"+k++; }
+  const prev=editingCo?companies.get(editingCo):{};
+  const body={...(prev.year?{year:prev.year}:{}),name,sectors,incubators:incs,relation:$("#coRel").value,status:$("#coStatus").value,city:$("#coCity").value.trim(),website:$("#coWeb").value.trim(),note:$("#coNote").value.trim(),source:$("#coSrc").value.trim(),addedBy:prev.addedBy||"Added in Atlas",addedAt:prev.addedAt||new Date().toISOString().slice(0,10)};
+  try{ $("#coSave").disabled=true; await db.collection("companies").doc(id).set(body); $("#dCo").close(); toast(editingCo?"Company updated":"Company added"); }
+  catch(x){ handleWriteErr(x, err); }
+  finally{ $("#coSave").disabled=false; }
+}
+function handleWriteErr(x, el){
+  if (x?.code==="invalid_argument"){ canWrite=false; el.textContent="You have view-only access to this page, so changes can't be saved."; render(); }
+  else if (x?.code==="quota_exceeded") el.textContent="The database is full. Remove unused entries before adding more.";
+  else el.textContent="Couldn't save right now. Try again in a moment.";
+  el.hidden=false;
+}
+function openInc(id){
+  if ($("#dView").open) $("#dView").close();
+  editingInc=id||null; const i=id?incubators.get(id):null;
+  $("#dIncTitle").textContent=i?`Edit ${i.name}`:"Add incubator";
+  for (const [f,k] of [["inName","name"],["inHost","host"],["inCity","city"],["inGroup","group"],["inFounded","founded"],["inScale","scale"],["inFocus","focus"],["inWeb","website"]]) $("#"+f).value=i?.[k]||"";
+  $("#groups").innerHTML=[...new Set([...incubators.values()].map(x=>x.group).filter(Boolean))].map(g=>`<option value="${esc(g)}">`).join("");
+  $("#inDel").hidden=!i; $("#inDelYes").hidden=true; $("#inErr").hidden=true;
+  $("#dInc").showModal(); $("#inName").focus();
+}
+async function saveInc(e){
+  e.preventDefault(); const err=$("#inErr"); err.hidden=true;
+  const name=$("#inName").value.trim(); if(!name){err.textContent="Give the incubator a name.";err.hidden=false;return;}
+  let id=editingInc||slug(name); if(!editingInc){let k=2; while(incubators.has(id)) id=slug(name)+"-"+k++;}
+  const prev=editingInc?incubators.get(editingInc):{};
+  const body={...prev,name,host:$("#inHost").value.trim(),city:$("#inCity").value.trim(),group:$("#inGroup").value.trim(),founded:$("#inFounded").value.trim(),scale:$("#inScale").value.trim(),focus:$("#inFocus").value.trim(),website:$("#inWeb").value.trim(),order:prev.order||incubators.size+1};
+  delete body._id;
+  try{ await db.collection("incubators").doc(id).set(body); $("#dInc").close(); toast(editingInc?"Incubator updated":"Incubator added"); }
+  catch(x){ handleWriteErr(x, err); }
+}
+
+// ---------- CSV ----------
+function csv(){
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const rows=[["Company","Sectors","Incubators","Relationship","Status","City","Year","Website","Note","Source"]];
+  for (const c of sorted(filtered())) rows.push([c.name,(c.sectors||[]).join("; "),(c.incubators||[]).map(incName).join("; "),c.relation,c.status,c.city,c.year,c.website,c.note,c.source]);
+  return rows.map(r=>r.map(q).join(",")).join("\n");
+}
+
+// ---------- events ----------
+function setView(v){
+  st.view=v; document.querySelectorAll("button[data-v]").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v)); curRow=-1;
+  ["explore","companies","incubators","map"].forEach(x=>$("#v-"+x).hidden=x!==v);
+  try{ history.replaceState(null,"","#"+v); }catch{}
+  if ($("#dView").open) $("#dView").close();
+  hideDock();
+  render();
+}
+let qTimer, curRow=-1;
+$("#q").addEventListener("input",e=>{ clearTimeout(qTimer); qTimer=setTimeout(()=>{ st.q=e.target.value.trim(); showN=120; $("#askline").hidden=true; render(); },140); });
+$("#askForm").addEventListener("submit",e=>{ e.preventDefault(); clearTimeout(qTimer); ask($("#q").value); });
+document.querySelectorAll("[data-ask]").forEach(b=>b.onclick=()=>{ $("#q").value=b.dataset.ask; ask(b.dataset.ask); });
+document.querySelectorAll("button[data-v]").forEach(b=>b.onclick=()=>setView(b.dataset.v));
+$("#sort").onchange=e=>{st.sort=e.target.value;saveUI();render();};
+$("#incSort").onchange=e=>{st.incSort=e.target.value;saveUI();render();};
+$("#cityFind").addEventListener("input",e=>{ st.cityFind=e.target.value.trim().toLowerCase(); renderFacets(); });
+document.addEventListener("change",e=>{ const f=e.target.dataset?.f; if(["sec","inc","city"].includes(f)){ e.target.checked?st[f].add(e.target.value):st[f].delete(e.target.value); showN=120; render(); } });
+document.addEventListener("click",e=>{
+  const li=e.target.closest("#palList li[data-pi]"); if (li){ palGo(+li.dataset.pi); return; }
+  const t=e.target.closest("button"); if(!t) return;
+  const d=t.dataset;
+  if (t.hasAttribute("data-close")){ const dg=t.closest("dialog"); if (dg) dg.close(); else hideDock(); return; }
+  if (d.f==="rel"||d.f==="sig"){ st[d.f].has(d.val)?st[d.f].delete(d.val):st[d.f].add(d.val); showN=120; render(); }
+  else if (d.rm){ if (d.rm==="q"){ st.q=""; $("#q").value=""; } else if (d.rm==="letter") st.letter=""; else st[d.rm].delete(d.val); $("#askline").hidden=true; render(); }
+  else if (d.act==="clearall"){ applySnap({}); $("#askline").hidden=true; render(); }
+  else if (d.act==="saveview"){ const sv=store.get("atlas.views",[]); const name=chipsList().map(([k,v])=>chipText(k,v)).join(" · ").slice(0,48); sv.unshift({name, s:snapshot()}); store.set("atlas.views",sv.slice(0,12)); toast("View saved in this browser"); renderSaved(); }
+  else if (d.view!==undefined && t.closest("#saved,#saved2")){ const v=store.get("atlas.views",[])[+d.view]; if (v){ applySnap(v.s); render(); } }
+  else if (d.unsave!==undefined){ const sv=store.get("atlas.views",[]); sv.splice(+d.unsave,1); store.set("atlas.views",sv); renderSaved(); }
+  else if (d.act==="openlist"){ setView("companies"); }
+  else if (d.act==="more"){ showN+=200; renderList(); }
+  else if (d.tile){ if (d.tile==="__more"){ setView("companies"); return; } st[DIM[d.dim].set].add(d.tile); showN=120; if (!currentDim()) {} render(); }
+  else if (d.crumb!==undefined){ const n=+d.crumb; NEXT[st.group].forEach((dm,i)=>{ if (i>n) st[DIM[dm].set].clear(); }); render(); }
+  else if (d.g){ st.group=d.g; saveUI(); render(); }
+  else if (d.az!==undefined){ st.letter=d.az; showN=120; render(); }
+  else if (d.clear){ st[d.clear].clear(); render(); }
+  else if (d.co){ openCompany(d.co); }
+  else if (d.sec && !d.pick){ st.sec=new Set([d.sec]); showN=120; setView(st.view==="explore"?"explore":"companies"); }
+  else if (d.city){ st.city=new Set([d.city]); showN=120; setView("companies"); }
+  else if (d.inc && !d.pick){ openIncubator(d.inc); }
+  else if (d.edit){ openCo(d.edit); }
+  else if (d.pick){ t.setAttribute("aria-pressed", t.getAttribute("aria-pressed")!=="true"); }
+  else if (d.cell){ const [s,i]=d.cell.split("|"); st.sec=new Set([s]); st.inc=new Set([i]); setView("companies"); }
+  else if (d.secinc){ const [s,i]=d.secinc.split("|"); st.sec=new Set([s]); st.inc=new Set([i]); setView("companies"); }
+  else if (d.filterinc){ st.inc=new Set([d.filterinc]); st.group="inc"; setView("explore"); }
+  else if (d.editinc){ openInc(d.editinc); }
+  else if (d.addfor){ openCo(null,d.addfor); }
+});
+$("#palQ").addEventListener("input",()=>{ palSel=0; renderPal(); });
+$("#palQ").addEventListener("keydown",e=>{
+  if (e.key==="ArrowDown"){ e.preventDefault(); palSel=Math.min(palSel+1,palItems.length-1); renderPal(); }
+  else if (e.key==="ArrowUp"){ e.preventDefault(); palSel=Math.max(palSel-1,0); renderPal(); }
+  else if (e.key==="Enter"){ e.preventDefault(); palGo(palSel); }
+});
+document.addEventListener("keydown",e=>{
+  const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); openPal(); return; }
+  if (typing || document.querySelector("dialog[open]")) return;
+  if (e.key==="Escape"){ hideDock(); return; }
+  if (st.view==="companies" && ["j","k","Enter","o"].includes(e.key)){
+    const rows=[...document.querySelectorAll("#list .row")]; if (!rows.length) return;
+    if (e.key==="j"||e.key==="k"){ curRow = Math.max(0, Math.min(rows.length-1, curRow + (e.key==="j"?1:-1))); rows.forEach((r,i)=>r.classList.toggle("cur",i===curRow)); rows[curRow].scrollIntoView({block:"nearest"}); if ($("#content").classList.contains("docked")) openCompany(rows[curRow].querySelector(".nmbtn").dataset.co); return; }
+    if (curRow>=0 && rows[curRow]){ e.preventDefault(); openCompany(rows[curRow].querySelector(".nmbtn").dataset.co); return; }
+  }
+  if (e.key==="/"){ e.preventDefault(); openPal(); }
+  else if (["1","2","3","4"].includes(e.key)) setView(["explore","companies","incubators","map"][+e.key-1]);
+});
+$("#addCo").onclick=()=>openCo(); $("#addInc").onclick=()=>openInc();
+$("#fCo").addEventListener("submit",saveCo); $("#fInc2").addEventListener("submit",saveInc);
+$("#coDel").onclick=()=>{ $("#coDel").hidden=true; $("#coDelYes").hidden=false; };
+$("#coDelYes").onclick=async()=>{ try{ if (packRows.has(editingCo)) await db.collection("companies").doc(editingCo).set({deleted:true,name:companies.get(editingCo)?.name||""}); else await db.collection("companies").doc(editingCo).delete(); $("#dCo").close(); toast("Company deleted"); }catch(x){ handleWriteErr(x,$("#coErr")); } };
+$("#inDel").onclick=()=>{ $("#inDel").hidden=true; $("#inDelYes").hidden=false; };
+$("#inDelYes").onclick=async()=>{ try{ await db.collection("incubators").doc(editingInc).delete(); $("#dInc").close(); toast("Incubator deleted. Its companies keep their tags."); }catch(x){ handleWriteErr(x,$("#inErr")); } };
+$("#exportBtn").onclick=()=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv()],{type:"text/csv"})); a.download=`incubator-atlas-${new Date().toISOString().slice(0,10)}.csv`; document.body.append(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); };
+let rz; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(()=>{ if (!WIDE()) hideDock(); if (st.view==="explore") renderExplore(); },150); });
+try{ new ResizeObserver(()=>{ document.documentElement.style.setProperty("--tb", $("#topbar").offsetHeight+"px"); }).observe($("#topbar")); }catch{}
+
+function applyWrite(){ ["#addCo","#addInc"].forEach(s=>$(s).hidden=!canWrite); }
+
+// ---------- boot ----------
+{ const h=location.hash.slice(1); if (["explore","companies","incubators","map"].includes(h)) setView(h); else render(); }
+(async () => {
+  $("#suggestCo").href = ISSUE("");
+  $("#exportBtn").hidden = false;
+  try{
+    const r = await fetch("data/atlas.json", {cache:"no-cache"});
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    incubators = new Map(j.incubators.map(i=>[i.id,{...i,_id:i.id}])); loaded.inc=true;
+    const m = new Map();
+    for (const row of j.rows){ const o={}; j.fields.forEach((k,i)=>o[k]=row[i]); o._id=o.id; m.set(o.id,o); }
+    packRows = m; docRows = new Map(); rebuild(); loaded.co = true;
+    if (j.built) $("#built").textContent = `Last updated ${new Date(j.built).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}.`;
+    render();
+  }catch(e){ $("#offline").hidden=false; $("#list").innerHTML=""; $("#count").textContent=""; }
+})();
+})();
+</script>
+
+</body>
+</html>
